@@ -16,7 +16,7 @@ The plugin creates three images sizes by default: **300x250**, **468x60** and **
 
 ## Creating Locations.
 Head now to ads locations creation because they are really needed for ads to be displayed (this will be explained later).
-Give your locations names and descriptions and please don't forget to add width and height without units, so that plugin adds **px**. You can use **100%** for both of them and **auto** for height.
+Give your locations names and descriptions and please don't forget to select ads dimensions so the plugin can correctly display them. If you leave at as **undefined** the with will be set to **100%** and the height to **auto**.
 
 ![Ads Locations](screenshot-3.png)
 

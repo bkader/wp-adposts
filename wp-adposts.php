@@ -30,7 +30,7 @@ class Ianhub_WP_AdPosts
 	 * The plugin version number.
 	 * @var string
 	 */
-	public $version = '1.0.0';
+	public $version = '1.1.0';
 
 	/**
 	 * The plugin's URL.
@@ -652,10 +652,14 @@ class Ianhub_WP_AdPosts
 		add_action('wpap_location_edit_form_fields', array($this, 'locations_edit_fields'));
 
 		// Add location form handler.
-		add_action('created_wpap_location', array($this, 'locations_add_form'), 10, 2);
+		add_action('created_wpap_location', array($this, 'locations_add_form'));
 
 		// Edit location form handler.
-		add_action('edited_wpap_location', array($this, 'locations_edit_form'), 10, 2);
+		add_action('edited_wpap_location', array($this, 'locations_edit_form'));
+
+		// Add ads sizes to locations list.
+		add_filter('manage_edit-wpap_location_columns', array($this, 'locations_table_column'));
+		add_filter('manage_wpap_location_custom_column', array($this, 'locations_table_content'), 10, 3);
 	}
 
 	// ------------------------------------------------------------------------
@@ -672,20 +676,12 @@ class Ianhub_WP_AdPosts
 	public function locations_add_fields()
 	{
 ?><div class="form-field term-group">
-	<label for="ad_width"><?php esc_html_e( 'Ads Width', 'wp-adposts' ); ?></label>
-	<input type="text" name="ad_width" id="ad_width" value="">
-	<p><?php printf(
-		esc_html__( 'This determines the maximum ads %s.', 'wp-adposts' ),
-		esc_html__( 'width', 'wp-adposts' )
-		); ?></p>
-</div>
-<div class="form-field term-group">
-	<label for="ad_height"><?php esc_html_e( 'Ads Height', 'wp-adposts' ); ?></label>
-	<input type="text" name="ad_height" id="ad_width" value="">
-	<p><?php printf(
-		esc_html__( 'This determines the maximum ads %s.', 'wp-adposts' ),
-		esc_html__( 'height', 'wp-adposts' )
-		); ?></p>
+	<label for="ads_sizes"><?php esc_html_e( 'Dimensions', 'wp-adposts' ); ?></label>
+	<select style="width: 95%;" name="ads_sizes" id="ads_sizes">
+		<option><?php _e('Undefined', 'wp-adposts'); ?></option><?php foreach ($this->ads_sizes() as $name): ?>
+		<option value="<?php echo $name; ?>"><?php echo $name; ?></option>
+	<?php endforeach; ?></select>
+	<p><?php printf(__('Dimensions on this dropdown list are the ones you have selected on the settings page. <a href="%s">Click here</a> if you want to add more.', 'wp-adposts'), 'options-general.php?page=wp-adposts'); ?></p>
 </div><?php
 	}
 
@@ -700,27 +696,16 @@ class Ianhub_WP_AdPosts
 	 */
 	public function locations_edit_fields($location)
 	{
-		$ad_width = get_term_meta($location->term_id, 'ad_width', true);
-		$ad_height = get_term_meta($location->term_id, 'ad_height', true);
+		$ads_sizes = get_term_meta($location->term_id, 'ads_sizes', true);
 ?>
 <tr class="form-field">
-	<th scope="row"><label for="ad_width"><?php esc_html_e( 'Ads Width', 'wp-adposts' ); ?></label></th>
+	<th scope="row"><label for="ads_sizes"><?php esc_html_e( 'Dimensions', 'wp-adposts' ); ?></label></th>
 	<td>
-		<input type="text" name="ad_width" id="ad_width" size="3" value="<?php echo $ad_width; ?>">
-		<p class="description"><?php printf(
-		esc_html__( 'This determines the maximum ads %s.', 'wp-adposts' ),
-		esc_html__( 'width', 'wp-adposts' )
-		); ?></p>
-	</td>
-</tr>
-<tr class="form-field">
-	<th scope="row"><label for="ad_height"><?php esc_html_e( 'Ads Height', 'wp-adposts' ); ?></label></th>
-	<td>
-		<input type="text" name="ad_height" id="ad_height" size="3" value="<?php echo $ad_height; ?>">
-		<p class="description"><?php printf(
-		esc_html__( 'This determines the maximum ads %s.', 'wp-adposts' ),
-		esc_html__( 'height', 'wp-adposts' )
-		); ?></p>
+		<select style="width: 95%;" name="ads_sizes" id="ads_sizes">
+			<option><?php _e('Undefined', 'wp-adposts'); ?></option><?php foreach ($this->ads_sizes() as $name): ?>
+			<option value="<?php echo $name; ?>"<?php if ($ads_sizes == $name): ?> selected<?php endif; ?>><?php echo $name; ?></option>
+		<?php endforeach; ?></select>
+		<p class="description"><?php printf(__('Dimensions on this dropdown list are the ones you have selected on the settings page. <a href="%s">Click here</a> if you want to add more.', 'wp-adposts'), 'options-general.php?page=wp-adposts'); ?></p>
 	</td>
 </tr><?php
 	}
@@ -737,23 +722,11 @@ class Ianhub_WP_AdPosts
 	 * @param
 	 * @return 	void
 	 */
-	public function locations_add_form()
+	public function locations_add_form($term_id)
 	{
-		$keys = array('ad_width', 'ad_height');
-		foreach ($keys as $key)
+		if (isset($_POST['ads_sizes']))
 		{
-			if (isset($_POST[$key]))
-			{
-				add_term_meta(
-					$term_id,
-					$key,
-					str_replace(
-						array('px', 'pt', 'em', 'rem'),
-						'',
-						$_POST[$key]
-					)
-				);
-			}
+			add_term_meta($term_id, 'ads_sizes', $_POST['ads_sizes']);
 		}
 	}
 
@@ -769,23 +742,58 @@ class Ianhub_WP_AdPosts
 	 * @param
 	 * @return 	void
 	 */
-	public function locations_edit_form()
+	public function locations_edit_form($term_id)
 	{
-		$keys = array('ad_width', 'ad_height');
-		foreach ($keys as $key)
+		if (isset($_POST['ads_sizes']))
 		{
-			if (isset($_POST[$key]))
-			{
-				update_term_meta(
-					$term_id,
-					$key,
-					str_replace(
-						array( 'px', 'pt', 'em', 'rem' ),
-						'',
-						$_POST[$key]
-					)
-				);
-			}
+			update_term_meta($term_id, 'ads_sizes', $_POST['ads_sizes']);
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Adding the ads dimensions column to locations table.
+	 *
+	 * @since 	1.1.0
+	 *
+	 * @access 	public
+	 * @param 	array 	$column 	Array of available columns.
+	 * @return 	array.
+	 */
+	public function locations_table_column( $columns )
+	{
+		// Add ads sizes column.
+		$columns['ads_sizes'] = __('Dimensions', 'wp-adposts');
+		return $columns;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Filling the new added ads dimensions column.
+	 *
+	 * @since 	1.1.0
+	 *
+	 * @access 	public
+	 * @param 	string 	$content 	The column content.
+	 * @param 	string 	$column 	The column's ID.
+	 * @param 	int 	$term_id 	The term's ID.
+	 * @return 	void
+	 */
+	public function locations_table_content( $content, $column, $term_id )
+	{
+		switch ($column)
+{
+			case 'ads_sizes':
+				// We first get the stored ads sizes.
+				$ads_sizes = get_term_meta($term_id, 'ads_sizes', true);
+
+				// If nothing found, use undefined.
+				echo ( ! $ads_sizes)
+					? '<em>'.__('Undefined', 'wp-adposts').'</em>'
+					: '<strong>', $ads_sizes, '</strong>';
+				break;
 		}
 	}
 
@@ -893,15 +901,23 @@ class Ianhub_WP_AdPosts
 		}
 
 		// Get location dimensions.
-		$width = get_term_meta($location->term_id, 'ad_width', true);
-		if ($width == '')
+		$sizes = get_term_meta($location->term_id, 'ads_sizes', true);
+
+		// If sizes are not set, it's better not to display ads.
+		if ( ! $sizes)
 		{
-			$width = null;
+			return null;
 		}
 
-		$height = get_term_meta($location->term_id, 'ad_height', true);
-		if ($height == '')
+		// Now that we ads dimensions, let's prepare width and height.
+		if (isset($this->_standard_ads[$sizes]))
 		{
+			$width = $this->_standard_ads[$sizes][0];
+			$height = $this->_standard_ads[$sizes][1];
+		}
+		else
+		{
+			$width = null;
 			$height = 'auto';
 		}
 

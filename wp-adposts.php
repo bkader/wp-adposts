@@ -443,13 +443,13 @@ class Ianhub_WP_AdPosts
 	public function enqueue_assets()
 	{
 		// Enqueue the StyleSheet.
-		wp_enqueue_style('wp-adposts', $this->url.'css/wp-adposts.min.css');
+		wp_enqueue_style('wp-adposts', $this->url.'assets/css/wp-adposts.min.css');
 
 		/**
 		 * Before queuing the script, we make sure to add the config
 		 * object thats holds the AJAX URL and more.
 		 */
-		wp_register_script('wp-adposts', $this->url.'js/wp-adposts.min.js', array('jquery'));
+		wp_register_script('wp-adposts', $this->url.'assets/js/wp-adposts.min.js', array('jquery'));
 		wp_localize_script('wp-adposts', 'AdPosts', array('ajaxUrl' => admin_url('admin-ajax.php')));
 		wp_enqueue_script( 'wp-adposts' );
 	}

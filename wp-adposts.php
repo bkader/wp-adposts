@@ -249,10 +249,9 @@ class Ianhub_WP_AdPosts
 				true
 			);
 		}
-		// add_image_size('ad-300x250', 300, 250, true);
-		// add_image_size('ad-300x600', 300, 600, true);
-		// add_image_size('ad-468x60', 468, 60, true);
-		// add_image_size('ad-728x90', 728, 90, true);
+
+		// We make sure to allow shortcodes in widgets.
+		add_filter('widget_text','do_shortcode');
 	}
 
 	// ------------------------------------------------------------------------
@@ -1026,7 +1025,7 @@ add_action('wp_ajax_ad_click', array('Ianhub_WP_AdPosts', 'ad_click'));
  */
 function wp_adposts($location = null)
 {
-	echo ianhub_wpap()->ad_display($location);
+	return ianhub_wpap()->ad_display($location);
 }
 
 endif; // En of the class: Ianhub_WP_AdPosts.

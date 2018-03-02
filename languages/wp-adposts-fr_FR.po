@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: WP AdPosts - version 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/bkader\n"
 "POT-Creation-Date: 2018-02-27 11:29+0100\n"
-"PO-Revision-Date: 2018-03-01 17:48+0100\n"
+"PO-Revision-Date: 2018-03-02 04:57+0100\n"
 "Last-Translator: Kader Bouyakoub <bkader@mail.com>\n"
 "Language-Team: Ianhub <contact@ianhub.com>\n"
 "Language: fr\n"
@@ -22,6 +22,7 @@ msgstr ""
 "X-Textdomain-Support: yes\n"
 "X-Poedit-Basepath: .\n"
 
+# This is the plugin's description.
 msgid ""
 "Allows you to create ads using codes or images and provides views and clicks counters, "
 "as well as locations management. You can even use the provided shortcode to insert ads "
@@ -31,57 +32,105 @@ msgstr ""
 "de vues et de clics, ainsi que la gestion des emplacements. Vous pouvez même utiliser le "
 "shortcode fourni pour insérer des publicités dans vos articles et pages."
 
-msgid "WP AdPosts Settings"
-msgstr "Paramètres WP AdPosts"
-
+#: wp-adpost.php:191
+#: wp-adpost.php:866
 msgid "Ads"
 msgstr "Publicités"
 
+#: wp-adpost.php:192
 msgid "Ad"
 msgstr "Publicité"
 
+#: wp-adpost.php:200
 msgid "All Ads"
 msgstr "Toutes les pubs"
 
+#: wp-adpost.php:201
 msgid "Search Ads"
 msgstr "Recherche de pubs"
 
+#: wp-adpost.php:202
 msgid "No ads were found."
 msgstr "Aucune Publicité trouvée."
 
+#: wp-adpost.php:203
 msgid "No ads were found in trash."
 msgstr "Aucune Publicité trouvée dans la corbeille."
 
-msgid "All ad locations"
-msgstr "Tous les emplacements de pub"
-
-msgid "Edit ad location"
-msgstr "Modifier l'emplacement de pub"
-
+#: wp-adpost.php:221
+#: wp-adpost.php:223
 msgid "Locations"
 msgstr "Emplacements"
 
-msgid "Location Name"
-msgstr "Nom de l'emplacement"
-
-msgid "Search location"
-msgstr "Recherche d'emplacements"
-
-msgid "No location found."
-msgstr "Aucun emplacement trouvé."
-
+#: wp-adpost.php:222
+#: wp-adpost.php:287
+#: wp-adpost.php:575
 msgid "Location"
 msgstr "Emplacement"
 
+#: wp-adpost.php:224
+msgid "All ad locations"
+msgstr "Tous les emplacements de pub"
+
+#: wp-adpost.php:225
+msgid "Edit ad location"
+msgstr "Modifier l'emplacement de pub"
+
+#: wp-adpost.php:228
+msgid "Location Name"
+msgstr "Nom de l'emplacement"
+
+#: wp-adpost.php:229
+msgid "Search location"
+msgstr "Recherche d'emplacements"
+
+#: wp-adpost.php:230
+#: wp-adpost.php:317
+msgid "No location found."
+msgstr "Aucun emplacement trouvé."
+
+#: wp-adpost.php:399
+#: wp-adpost.php:432
+msgid "WP AdPosts Settings"
+msgstr "Paramètres WP AdPosts"
+
+#: wp-adpost.php:433
+msgid ""
+"Ad banners are kind of standardized. There are several sizes from which you can choose. "
+"If none are selected, default ones will be used (300x250, 468x60 and 728x90). "
+"Note that each selected image size will be done to WordPress media manager."
+msgstr ""
+"Les bannières publicitaires ont des normes. Il y a plusieurs dimensions que vous pouvez choisir. "
+"Si aucune n'est sélectionnée, celles par défaut seront utilisées (300x250, 468x60 et 728x90). "
+"Il faut noter chaque dimension choisie sera ajoutée au gestionnaire de médias de WordPress."
+
+#: wp-adpost.php:576
 msgid "Views"
 msgstr "Affichages"
 
+#: wp-adpost.php:577
 msgid "Clicks"
 msgstr "Clics"
 
+#: wp-adpost.php:603
+#: wp-adpost.php:608
+#: wp-adpost.php:775
+#: wp-adpost.php:906
+msgid "Undefined"
+msgstr "Indéfini"
+
+#: wp-adpost.php:669
+msgid "Ad Link"
+msgstr "Lien de la publicité"
+
+#: wp-adpost.php:773
+#: wp-adpost.php:796
+#: wp-adpost.php:867
 msgid "Dimensions"
 msgstr "Dimensions"
 
+#: wp-adpost.php:778
+#: wp-adpost.php:802
 msgid ""
 "Dimensions on this dropdown list are the ones you have selected on the "
 "settings page. <a href=\"%s\">Click here</a> if you want to add more."
@@ -89,21 +138,3 @@ msgstr ""
 "Les dimensions de cette liste déroulante sont celles que vous avez "
 "sélectionnées sur la page des paramètres. <a href=\"%s\">Cliquez ici</a> si "
 "vous souhaitez en ajouter d'autres."
-
-msgid "Undefined"
-msgstr "Indéfini"
-
-msgid "Ads Width"
-msgstr "Largeur des publicités"
-
-msgid "width"
-msgstr "largeur"
-
-msgid "Ads Height"
-msgstr "Hauteur des publicités"
-
-msgid "height"
-msgstr "hauteur"
-
-msgid "Ad Link"
-msgstr "Lien de la publicité"

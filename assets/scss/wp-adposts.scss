@@ -17,6 +17,13 @@ $ad-margin: 15px auto;
 	margin: $ad-margin;
 	overflow: hidden;
 	text-align: center;
+
+	// We make sure images take only the width.
+	img {
+		max-width: 100%;
+		height: auto;
+		outline: 0;
+	}
 }
 
 // Tiny ad of 88x31

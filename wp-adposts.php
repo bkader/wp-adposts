@@ -30,7 +30,7 @@ class Ianhub_WP_AdPosts
 	 * The plugin version number.
 	 * @var string
 	 */
-	public $version = '1.1.0';
+	public $version = '1.2.0';
 
 	/**
 	 * The plugin's URL.
@@ -92,7 +92,7 @@ class Ianhub_WP_AdPosts
 	{
 		// We simple create the option.
 		delete_option('wp_adposts_sizes');
-		add_option('wp_adposts_sizes', $this->_ads_sizes);
+		add_option('wp_adposts_sizes', array('300x250', '468x60', '728x90'));
 	}
 
 	// ------------------------------------------------------------------------
@@ -233,7 +233,7 @@ class Ianhub_WP_AdPosts
 			'public'            => false,
 			'show_admin_column' => true,
 			'show_ui'           => true,
-			'meta_box_cb' => array($this, 'locations_meta_box'),
+			// 'meta_box_cb' => array($this, 'locations_meta_box'),
 		) );
 
 		// We make sure to add thumbnail support.
@@ -257,14 +257,53 @@ class Ianhub_WP_AdPosts
 	// ------------------------------------------------------------------------
 
 	/**
-	 * Locations meta box callback.
+	 * This method removes default locations meta box.
 	 *
-	 * @since 	1.0.0
+	 * @since 	1.2.0
 	 *
 	 * @param 	none
 	 * @return 	void
 	 */
-	public function locations_meta_box()
+	public function remove_locations_meta_box()
+	{
+		remove_meta_box('tagsdiv-wpap_location', 'wpap_ad', 'normal');
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method adds the locations custom metabox.
+	 *
+	 * @since 	1.2.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	void
+	 */
+	public function add_locations_meta_box()
+	{
+		add_meta_box(
+			'ad_location',
+			esc_html__('Location', 'wp-adposts'),
+			array($this, 'locations_meta_box'),
+			'wpap_ad',
+			'side',
+			'high'
+		);
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method outputs the custom locations meta box.
+	 *
+	 * @since 	1.2.0
+	 *
+	 * @access 	public
+	 * @param 	object 	$post 	The post that's being edited/created.
+	 * @return 	void
+	 */
+	public function locations_meta_box($post)
 	{
 		// Retrieve all ads locations.
 		$locations = get_terms(array(
@@ -275,20 +314,44 @@ class Ianhub_WP_AdPosts
 		// Display a message if no locations are found.
 		if ( ! $locations)
 		{
-			echo esc_html_('No location found.', 'wp-adposts');
+			esc_html_e('No location found.', 'wp-adposts');
 		}
 		// Otherwise, display locations radio buttons.
 		else
 		{
+			// Get current post location.
+			$current = get_post_meta($post->ID, 'ad_location', true);
+
 			// Get the post ID to check the selected location.
 			foreach ($locations as $term) {
 ?>
 <label>
-	<input type="radio" name="tax_input[wpap_location][]" id="in-wpap_location-<?php echo $term->term_id; ?>" value="<?php echo $term->term_id; ?>"<?php if ( has_term( $term->term_id, 'wpap_location', $post_id ) ): ?> checked<?php endif; ?>>
+	<input value="<?php echo esc_attr($term->term_id); ?>" type="radio" name="ad_location" id="<?php echo esc_attr('wpap_location-'.$term->term_id); ?>"<?php if ($term->term_id == $current): ?> checked<?php endif; ?>>
 	<?php echo $term->name; ?>
 </label><br />
 <?php
-			}
+			}	// Endforeach
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method handles ad location save form.
+	 *
+	 * @since 	1.2.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	void
+	 */
+	public function ad_location_save()
+	{
+		if (isset($_POST['ad_location']))
+		{
+			global $post;
+			$ad_location = absint(sanitize_text_field($_POST['ad_location']));
+			update_post_meta($post->ID, 'ad_location', $ad_location);
 		}
 	}
 
@@ -367,7 +430,7 @@ class Ianhub_WP_AdPosts
 ?>
 <div class="wrap">
 	<h1><?php esc_html_e('WP AdPosts Settings', 'wp-adposts'); ?></h1>
-	<p><?php esc_html_e('Ad banners are kind of standardized. There are several sizes from which you can choose. If none are selected, default ones will be used (300x250, 468x60 and 728x90). Note that for each selected size, and image size will be done to WordPress media manager.', 'wp-adposts'); ?></p>
+	<p><?php esc_html_e('Ad banners are kind of standardized. There are several sizes from which you can choose. If none are selected, default ones will be used (300x250, 468x60 and 728x90). Note that each selected image size will be done to WordPress media manager.', 'wp-adposts'); ?></p>
 	<form action="options.php" method="post"><?php
 
 		settings_fields('wp-adposts-settings');
@@ -451,7 +514,7 @@ class Ianhub_WP_AdPosts
 		 */
 		wp_register_script('wp-adposts', $this->url.'assets/js/wp-adposts.min.js', array('jquery'));
 		wp_localize_script('wp-adposts', 'AdPosts', array('ajaxUrl' => admin_url('admin-ajax.php')));
-		wp_enqueue_script( 'wp-adposts' );
+		wp_enqueue_script('wp-adposts');
 	}
 
 	// ------------------------------------------------------------------------
@@ -496,6 +559,9 @@ class Ianhub_WP_AdPosts
 	 */
 	public function ads_table_columns($columns)
 	{
+		// Remove default locations column.
+		unset($columns['taxonomy-wpap_location']);
+
 		// Remove unnecessary columns.
 		if (function_exists('thumbs_rating_getlink'))
 		{
@@ -506,8 +572,9 @@ class Ianhub_WP_AdPosts
 		}
 
 		// Add columns.
-		$columns['ad_views']  = esc_html__('Views', 'wp-adposts');
-		$columns['ad_clicks'] = esc_html__('Clicks', 'wp-adposts');
+		$columns['wpap_location'] = esc_html__('Location', 'wp-adposts');
+		$columns['ad_views']               = esc_html__('Views', 'wp-adposts');
+		$columns['ad_clicks']              = esc_html__('Clicks', 'wp-adposts');
 
 		return $columns;
 	}
@@ -528,6 +595,20 @@ class Ianhub_WP_AdPosts
 	{
 		switch ($column)
 		{
+			// Display the ad's location.
+			case 'wpap_location':
+				$location_id = get_post_meta($post_id, 'ad_location', true);
+				if ( ! $location_id)
+				{
+					esc_html_e('Undefined', 'wp-adposts');
+				}
+				else
+				{
+					$location = get_term($location_id, 'wpap_location');
+					echo ($location) ? $location->name : esc_html__('Undefined', 'wp-adposts');
+				}
+				break;
+
 			// Display ad views count.
 			case 'ad_views':
 				$views = get_post_meta($post_id, 'ad_view_count', true);
@@ -566,6 +647,7 @@ class Ianhub_WP_AdPosts
 		return wp_parse_args(array(
 			'ad_views' => 'ad_view_count' ,
 			'ad_clicks' => 'ad_click_count' ,
+			'wpap_location' => 'wpap_location',
 		), $columns);
 	}
 
@@ -608,7 +690,7 @@ class Ianhub_WP_AdPosts
 		global $post;
 		$ad_link = get_post_meta($post->ID, 'ad_link', true);
 ?>
-<input size="35" id="ad_link" name="ad_link" type="text" value="<?php echo $ad_link; ?>" />
+<input type="url" name="ad_link" id="ad_link" size="35" value="<?php echo esc_url_raw($ad_link); ?>" />
 <?php
 	}
 
@@ -625,8 +707,13 @@ class Ianhub_WP_AdPosts
 	 */
 	public function ad_link_save()
 	{
-		global $post;
-		update_post_meta($post->ID, 'ad_link', $_POST['ad_link']);
+		// We make sure it's set and is a valid URL.
+		if (isset($_POST['ad_link']) && filter_var($_POST['ad_link'], FILTER_VALIDATE_URL))
+		{
+			global $post;
+			$ad_link = esc_url_raw($_POST['ad_link']);
+			update_post_meta($post->ID, 'ad_link', $ad_link);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -660,6 +747,13 @@ class Ianhub_WP_AdPosts
 		// Add ads sizes to locations list.
 		add_filter('manage_edit-wpap_location_columns', array($this, 'locations_table_column'));
 		add_filter('manage_wpap_location_custom_column', array($this, 'locations_table_content'), 10, 3);
+
+		// Remove default locations metabox and add custom one.
+		add_action('admin_menu', array($this, 'remove_locations_meta_box'));
+		add_action('add_meta_boxes', array($this, 'add_locations_meta_box'));
+
+		// Handle saving.
+		add_action('save_post', array($this, 'ad_location_save'));
 	}
 
 	// ------------------------------------------------------------------------
@@ -676,7 +770,7 @@ class Ianhub_WP_AdPosts
 	public function locations_add_fields()
 	{
 ?><div class="form-field term-group">
-	<label for="ads_sizes"><?php esc_html_e( 'Dimensions', 'wp-adposts' ); ?></label>
+	<label for="ads_sizes"><?php esc_html_e('Dimensions', 'wp-adposts'); ?></label>
 	<select style="width: 95%;" name="ads_sizes" id="ads_sizes">
 		<option><?php _e('Undefined', 'wp-adposts'); ?></option><?php foreach ($this->ads_sizes() as $name): ?>
 		<option value="<?php echo $name; ?>"><?php echo $name; ?></option>
@@ -699,7 +793,7 @@ class Ianhub_WP_AdPosts
 		$ads_sizes = get_term_meta($location->term_id, 'ads_sizes', true);
 ?>
 <tr class="form-field">
-	<th scope="row"><label for="ads_sizes"><?php esc_html_e( 'Dimensions', 'wp-adposts' ); ?></label></th>
+	<th scope="row"><label for="ads_sizes"><?php esc_html_e('Dimensions', 'wp-adposts'); ?></label></th>
 	<td>
 		<select style="width: 95%;" name="ads_sizes" id="ads_sizes">
 			<option><?php _e('Undefined', 'wp-adposts'); ?></option><?php foreach ($this->ads_sizes() as $name): ?>
@@ -726,7 +820,8 @@ class Ianhub_WP_AdPosts
 	{
 		if (isset($_POST['ads_sizes']))
 		{
-			add_term_meta($term_id, 'ads_sizes', $_POST['ads_sizes']);
+			$ads_sizes = sanitize_text_field($_POST['ads_sizes']);
+			add_term_meta($term_id, 'ads_sizes', $ads_sizes);
 		}
 	}
 
@@ -746,7 +841,8 @@ class Ianhub_WP_AdPosts
 	{
 		if (isset($_POST['ads_sizes']))
 		{
-			update_term_meta($term_id, 'ads_sizes', $_POST['ads_sizes']);
+			$ads_sizes = sanitize_text_field($_POST['ads_sizes']);
+			update_term_meta($term_id, 'ads_sizes', $ads_sizes);
 		}
 	}
 
@@ -763,7 +859,11 @@ class Ianhub_WP_AdPosts
 	 */
 	public function locations_table_column( $columns )
 	{
+		// Remove default posts count column.
+		unset($columns['posts']);
+
 		// Add ads sizes column.
+		$columns['ads_count'] = __('Ads', 'wp-adposts');
 		$columns['ads_sizes'] = __('Dimensions', 'wp-adposts');
 		return $columns;
 	}
@@ -784,7 +884,19 @@ class Ianhub_WP_AdPosts
 	public function locations_table_content( $content, $column, $term_id )
 	{
 		switch ($column)
-{
+		{
+			// Displays ads count.
+			case 'ads_count':
+				// echo $term_id;
+				$query = new WP_Query(array(
+					'post_type' => 'wpap_ad',
+					'meta_key' => 'ad_location',
+					'meta_value' => $term_id
+				));
+				echo $query->found_posts;
+				break;
+
+			// Display ads dimensions.
 			case 'ads_sizes':
 				// We first get the stored ads sizes.
 				$ads_sizes = get_term_meta($term_id, 'ads_sizes', true);
@@ -926,7 +1038,8 @@ class Ianhub_WP_AdPosts
 			'posts_per_page' => 1,
 			'orderby'        => 'rand',
 			'post_type'      => 'wpap_ad',
-			'wpap_location'  => $location->slug,
+			'meta_key'       => 'ad_location',
+			'meta_value'     => $location->term_id,
 		));
 
 		// If there are no ads, nothing to do.
@@ -942,29 +1055,37 @@ class Ianhub_WP_AdPosts
 		// Get the ad URL.
 		$url = get_post_meta($ad->ID, 'ad_link', true);
 
-		// Get the ad thumbnail.
-		$image_id = get_post_thumbnail_id($ad->ID);
-
 		// If found, we prepare the content.
-		if ($image_id) {
+		if (has_post_thumbnail($ad->ID))
+		{
 			// Prepare the width.
-			if ( null == $width OR false !== strpos( $width, '%' ) )
+			if ( null == $width OR false !== strpos( $width, '%') )
 			{
-				$image_src = wp_get_attachment_image_src($image_id);
+				$size = 'full';
 			}
 			elseif ( ! is_numeric($height))
 			{
-				$image_src = wp_get_attachment_image_src($image_id, "ad-{$width}");
+				$size = 'ad-'.$width;
 			}
 			else
 			{
-				$image_src = wp_get_attachment_image_src($image_id, "ad-{$width}x{$height}");
+				$size = "ad-{$width}x{$height}";
 			}
 
-			$content = '<img src="'. $image_src[0] .'" alt="'.$ad->post_title.'" />';
+			$content = sprintf(
+				'<a class="wp-adpost-link" data-ad="%" href="%" target="_blank">%s</a>',
+				esc_attr($ad->ID),
+				esc_url_raw($url),
+				get_the_post_thumbnail($ad->ID, $size)
+			);
 		}
 		else
 		{
+			/**
+			 * Because the ad can be a code (i.e: Google Adsence), the content
+			 * is not escaped. It is displayed the way it is.
+			 * The user can also use full HTML if he/she wants.
+			 */
 			$content = $ad->post_content;
 		}
 
@@ -972,7 +1093,7 @@ class Ianhub_WP_AdPosts
 		$views = get_post_meta( $ad->ID, 'ad_view_count', true );
 		if ( ! $views ) {
 			$views = 1;
-			delete_post_meta( $ad->ID, 'ad_view_count' );
+			delete_post_meta( $ad->ID, 'ad_view_count');
 			add_post_meta( $ad->ID, 'ad_view_count', $views );
 		} else {
 			$views++;
@@ -980,20 +1101,31 @@ class Ianhub_WP_AdPosts
 		}
 
 		// Now we prepare the final output.
-		$output = '<div id="wp-adpost-'.$ad->ID.'" class="wp-adpost wp-adpost-'.$ad->ID;
+		$pre_output = '<div id="%s" class="%s">%s</div>';
 
-		if ( null !== $width OR false === strpos( $width, '%' ) ) {
-			$output .= ' wp-adpost-'.$width;
-			if ( $height !== '' && $height !== 'auto') {
-				$output .= 'x'.$height;
+		// -----------------
+		// Build attributes.
+		// -----------------
+		// 1. ID
+		$attr_id = 'wp-adpost-'.$ad->ID;
+
+		// 2. Class.
+		$attr_class = 'wp-adpost wp-adpost-'.$ad->ID;
+		if (null !== $width OR false === strpos($width, '%')) {
+			$attr_class .= ' wp-adpost-'.$width;
+			// Add the height.
+			if ('' !== $height && $height !== 'auto') {
+				$attr_class .= 'x'.$height;
 			}
 		}
 
-		$output .= ' wp-adpost-'.$ad->post_name.'">';
-		$output .= '<a class="wp-adpost-link" data-ad="'.$ad->ID.'" href="' . $url . '" target="_blank">';
-		$output .= $content;
-		$output .= '</a>';
-		$output .= '</div>'; // end of ad-above-header
+		// Final output.
+		$output = sprintf(
+			$pre_output,
+			esc_attr($attr_id),
+			esc_attr($attr_class),
+			$content // Escaped at line 1081 if not an image.
+		);
 
 		wp_reset_postdata();
 		return $output;

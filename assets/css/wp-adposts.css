@@ -7,9 +7,11 @@
   background-color: #ddd;
   color: #414141;
   display: block;
+  height: auto;
   margin: 15px auto;
   overflow: hidden;
   text-align: center;
+  width: 100%;
 }
 .wp-adpost img, .wp-adpost-88x31 img, .wp-adpost-120x60 img, .wp-adpost-120x90 img, .wp-adpost-120x240 img, .wp-adpost-120x600 img, .wp-adpost-125x125 img, .wp-adpost-160x600 img, .wp-adpost-180x150 img, .wp-adpost-234x60 img, .wp-adpost-250x250 img, .wp-adpost-300x100 img, .wp-adpost-300x250 img, .wp-adpost-300x600 img, .wp-adpost-336x280 img, .wp-adpost-468x60 img, .wp-adpost-728x90 img, .wp-adpost-728x300 img {
   max-width: 100%;

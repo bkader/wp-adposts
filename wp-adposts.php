@@ -1,25 +1,24 @@
 <?php
 defined('ABSPATH') OR exit('No direct script access allowed');
 /**
- * Plugin Name: WP AdPosts
- * Plugin URI: https://ianhub.net/products/wordpress/wp-adposts
+ * Plugin Name: WP AdPosts by Kader Bouyakoub
+ * Plugin URI: https://go.ianhub.net/2FUtrOF
  * Author: Kader Bouyakoub
- * Author URI: https://github.com/bkader
+ * Author URI: http://bit.ly/KaderGhb
  * Description: Allows you to create ads using codes or images and provides views and clicks counters, as well as locations management. You can even use the provided shortcode to insert ads into posts and pages.
- * Version: 1.0.0
+ * Version: 1.2.0
  * License: GPLv3 or later
  * License URI: https://opensource.org/licenses/GPL-3.0
  * Text Domain: wp-adposts
- * Domain Path: /languages/
+ * Domain Path: /languages
  *
  * @package 	wordpress
  * @subpackage 	Plugins
  * @category 	Ads Plugins
  * @author 		Kader Bouyakoub <bkader@mail.com>
- * @link 		https://github.com/bkader
- * @copyright 	Copyright (c) 2018, Kader Bouyakoub (https://github.com/bkader)
+ * @link 		http://bit.ly/KaderGhb
+ * @copyright 	Copyright (c) 2018, Kader Bouyakoub (http://bit.ly/KaderGhb)
  * @license 	https://opensource.org/licenses/GPL-3.0  GNU General Public License
- * @since 		1.0.0
  */
 
 if ( ! function_exists('Ianhub_WP_AdPosts')):
@@ -43,23 +42,24 @@ class Ianhub_WP_AdPosts
 	 * @var array
 	 */
 	private $_standard_ads = array(
-		'88x31'   => array(88,  31),
-		'120x60'  => array(120, 60),
-		'120x90'  => array(120, 90),
-		'120x240' => array(120, 240),
-		'120x600' => array(120, 600),
-		'125x125' => array(125, 125),
-		'160x600' => array(160, 600),
-		'180x150' => array(180, 150),
-		'234x60'  => array(234, 60),
-		'250x250' => array(250, 250),
-		'300x100' => array(300, 100),
-		'300x250' => array(300, 250),
-		'300x600' => array(300, 600),
-		'336x280' => array(336, 280),
-		'468x60'  => array(468, 60),
-		'728x90'  => array(728, 90),
-		'728x300' => array(728, 300),
+		'responsive' => array(null, 'auto'),
+		'88x31'      => array(88,  31),
+		'120x60'     => array(120, 60),
+		'120x90'     => array(120, 90),
+		'120x240'    => array(120, 240),
+		'120x600'    => array(120, 600),
+		'125x125'    => array(125, 125),
+		'160x600'    => array(160, 600),
+		'180x150'    => array(180, 150),
+		'234x60'     => array(234, 60),
+		'250x250'    => array(250, 250),
+		'300x100'    => array(300, 100),
+		'300x250'    => array(300, 250),
+		'300x600'    => array(300, 600),
+		'336x280'    => array(336, 280),
+		'468x60'     => array(468, 60),
+		'728x90'     => array(728, 90),
+		'728x300'    => array(728, 300),
 	);
 
 	/**
@@ -82,6 +82,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method is triggered upon plugin's activation.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -100,6 +102,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method is triggered upon plugin's deactivation.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -120,6 +124,8 @@ class Ianhub_WP_AdPosts
 	 * This method will simply construct all necessary actions, filters
 	 * and functions for this plugin to work.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.1
 	 *
 	 * @access 	public
@@ -178,6 +184,8 @@ class Ianhub_WP_AdPosts
 	 * This method handles the registration of the custom post
 	 * type "ad" as well as custom ad location taxonomy.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -242,12 +250,19 @@ class Ianhub_WP_AdPosts
 		// We add different ads banners sizes.
 		foreach ($this->ads_sizes() as $id)
 		{
-			add_image_size(
-				'ad-'.$id,
-				$this->_standard_ads[$id][0],
-				$this->_standard_ads[$id][1],
-				true
-			);
+			if ($id === 'responsive')
+			{
+				add_image_size('ad-responsive', 9999, 9999, false);
+			}
+			else
+			{
+				add_image_size(
+					'ad-'.$id,
+					$this->_standard_ads[$id][0],
+					$this->_standard_ads[$id][1],
+					true
+				);
+			}
 		}
 
 		// We make sure to allow shortcodes in widgets.
@@ -259,8 +274,11 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method removes default locations meta box.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.2.0
 	 *
+	 * @access 	public
 	 * @param 	none
 	 * @return 	void
 	 */
@@ -274,6 +292,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method adds the locations custom metabox.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.2.0
 	 *
 	 * @access 	public
@@ -297,6 +317,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method outputs the custom locations meta box.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.2.0
 	 *
 	 * @access 	public
@@ -339,6 +361,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method handles ad location save form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.2.0
 	 *
 	 * @access 	public
@@ -362,6 +386,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Add the settings link to plugins page.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -375,7 +401,7 @@ class Ianhub_WP_AdPosts
 			// Settings link.
 			'<a href="options-general.php?page=wp-adposts">'.__('Settings').'</a>',
 			// Documentation link.
-			'<a href="https://github.com/bkader/wp-adposts" target="_blank">Docs</a>'
+			'<a href="http://bit.ly/2FdTlzG" target="_blank">Docs</a>'
 		);
 
 		return $links;
@@ -386,6 +412,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method simply created the settings menu item.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -412,6 +440,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Plugin's settings page handler.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -453,6 +483,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * We make sure to add the settings fields so it get stored into database.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -471,6 +503,8 @@ class Ianhub_WP_AdPosts
 	 * ads sizes. In fact, it simply cache the stored sizes before returning
 	 * them so that if we call it again, it will simply return cached ones.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -498,8 +532,11 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Register plugins assets.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
+	 * @access 	public
 	 * @param 	none
 	 * @return 	void
 	 */
@@ -524,6 +561,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Alter ads dashboard table.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -551,6 +590,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Add needed ads table columns and remove unnecessary ones.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -573,8 +614,8 @@ class Ianhub_WP_AdPosts
 
 		// Add columns.
 		$columns['wpap_location'] = esc_html__('Location', 'wp-adposts');
-		$columns['ad_views']               = esc_html__('Views', 'wp-adposts');
-		$columns['ad_clicks']              = esc_html__('Clicks', 'wp-adposts');
+		$columns['ad_views']      = esc_html__('Views', 'wp-adposts');
+		$columns['ad_clicks']     = esc_html__('Clicks', 'wp-adposts');
 
 		return $columns;
 	}
@@ -584,6 +625,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Fill ads table columns.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -636,6 +679,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Allows users to sort ads by views and/or clicks.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -656,6 +701,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Add the ad link custom field to post edit.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -679,6 +726,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Store ad link to post meta.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -699,6 +748,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Ad link save form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -724,6 +775,8 @@ class Ianhub_WP_AdPosts
 	 * Add all necessary actions and filters for dashboard ads
 	 * locations management.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -761,6 +814,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method adds new fields to locations creation form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -782,6 +837,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * This method adds new fields to locations edit form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -809,6 +866,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Handles location creation form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -830,6 +889,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Handles location update form.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -851,6 +912,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Adding the ads dimensions column to locations table.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.1.0
 	 *
 	 * @access 	public
@@ -873,6 +936,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Filling the new added ads dimensions column.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.1.0
 	 *
 	 * @access 	public
@@ -916,6 +981,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Handles ads clicks.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -970,6 +1037,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * The shortcode used to display ads within posts and pages.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -991,6 +1060,8 @@ class Ianhub_WP_AdPosts
 	/**
 	 * Display random ads at the selected location.
 	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
@@ -1061,7 +1132,7 @@ class Ianhub_WP_AdPosts
 			// Prepare the width.
 			if ( null == $width OR false !== strpos( $width, '%') )
 			{
-				$size = 'full';
+				$size = 'ad-responsive';
 			}
 			elseif ( ! is_numeric($height))
 			{

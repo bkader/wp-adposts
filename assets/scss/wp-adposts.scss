@@ -4,7 +4,7 @@
  * Licensed under GPLv3 or later (https://opensource.org/licenses/GPL-3.0)
  */
 
-// Some variables.
+// Needed variables.
 $ad-background: #ddd;
 $ad-text-color: #414141;
 $ad-margin: 15px auto;
@@ -14,9 +14,11 @@ $ad-margin: 15px auto;
 	background-color: $ad-background;
 	color: $ad-text-color;
 	display: block;
+	height: auto;
 	margin: $ad-margin;
 	overflow: hidden;
 	text-align: center;
+	width: 100%;
 
 	// We make sure images take only the width.
 	img {

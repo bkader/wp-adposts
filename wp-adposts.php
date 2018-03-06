@@ -6,15 +6,15 @@ defined('ABSPATH') OR exit('No direct script access allowed');
  * Author: Kader Bouyakoub
  * Author URI: http://bit.ly/KaderGhb
  * Description: Allows you to create ads using codes or images and provides views and clicks counters, as well as locations management. You can even use the provided shortcode to insert ads into posts and pages.
- * Version: 1.2.0
+ * Version: 1.3.0
  * License: GPLv3 or later
  * License URI: https://opensource.org/licenses/GPL-3.0
  * Text Domain: wp-adposts
  * Domain Path: /languages
  *
- * @package 	wordpress
- * @subpackage 	Plugins
- * @category 	Ads Plugins
+ * @package 	WordPress
+ * @subpackage 	WP AdPosts
+ * @category 	Plugins
  * @author 		Kader Bouyakoub <bkader@mail.com>
  * @link 		http://bit.ly/KaderGhb
  * @copyright 	Copyright (c) 2018, Kader Bouyakoub (http://bit.ly/KaderGhb)
@@ -29,7 +29,7 @@ class Ianhub_WP_AdPosts
 	 * The plugin version number.
 	 * @var string
 	 */
-	public $version = '1.2.0';
+	public $version = '1.3.0';
 
 	/**
 	 * The plugin's URL.
@@ -75,6 +75,24 @@ class Ianhub_WP_AdPosts
 	 */
 	private $ads_sizes;
 
+	/**
+	 * Cached locations to reduce DB access.
+	 * @var object
+	 */
+	private $_ads_locations;
+
+	/**
+	 * Are posts within posts enabled?
+	 * @var boolean
+	 */
+	private $_posts_ad_enabled = false;
+
+	/**
+	 * Cache the position of ads displayed within posts.
+	 * @var integer
+	 */
+	private $_posts_ad_position;
+
 	// ------------------------------------------------------------------------
 	// Plugin activation, deactivation and loaded hooks.
 	// ------------------------------------------------------------------------
@@ -112,7 +130,7 @@ class Ianhub_WP_AdPosts
 	 */
 	public function deactivate()
 	{
-		// We simple delete the option.
+		// We simply delete the option.
 		delete_option('wp_adposts_sizes');
 	}
 
@@ -126,7 +144,7 @@ class Ianhub_WP_AdPosts
 	 *
 	 * @author 	Kader Bouyakoub
 	 * @link 	http://bit.ly/KaderGhb
-	 * @since 	1.0.1
+	 * @since 	1.0.0
 	 *
 	 * @access 	public
 	 * @param 	none
@@ -155,6 +173,9 @@ class Ianhub_WP_AdPosts
 
 			// Add shortcode.
 			add_shortcode('wp-adposts', array($this, 'shortcode'));
+
+			// Display ads within posts content.
+			$this->ads_within_posts();
 		}
 		// For back-end.
 		else
@@ -200,11 +221,11 @@ class Ianhub_WP_AdPosts
 				'singular_name'      => esc_html__('Ad', 'wp-adposts'),
 				'menu_name'          => 'WP AdPosts',
 				'name_admin_bar'     => 'WP AdPosts',
-				'add_new'            => esc_html__('Add'),
-				'add_new_item'       => esc_html__('Add'),
-				'new_item'           => esc_html__('Add'),
-				'edit_item'          => esc_html__('Edit'),
-				'view_item'          => esc_html__('View'),
+				'add_new'            => esc_html__('Add', 'wp-adposts'),
+				'add_new_item'       => esc_html__('Add', 'wp-adposts'),
+				'new_item'           => esc_html__('Add', 'wp-adposts'),
+				'edit_item'          => esc_html__('Edit', 'wp-adposts'),
+				'view_item'          => esc_html__('View', 'wp-adposts'),
 				'all_items'          => esc_html__('All Ads', 'wp-adposts'),
 				'search_items'       => esc_html__('Search Ads', 'wp-adposts'),
 				'not_found'          => esc_html__('No ads were found.', 'wp-adposts'),
@@ -215,7 +236,7 @@ class Ianhub_WP_AdPosts
 			'menu_icon'          => 'dashicons-schedule',
 			'menu_position'      => 5,
 			'public'             => false,
-			'publicly_queryable' => true,
+			'publicly_queryable' => false,
 			'query_var'          => false,
 			'show_in_admin_bar'  => false,
 			'show_in_menu'       => true,
@@ -231,8 +252,8 @@ class Ianhub_WP_AdPosts
 				'menu_name'     => esc_html__('Locations', 'wp-adposts'),
 				'all_items'     => esc_html__('All ad locations', 'wp-adposts'),
 				'edit_item'     => esc_html__('Edit ad location', 'wp-adposts'),
-				'update_item'   => esc_html__('Update'),
-				'add_new_item'  => esc_html__('Add'),
+				'update_item'   => esc_html__('Update', 'wp-adposts'),
+				'add_new_item'  => esc_html__('Add', 'wp-adposts'),
 				'new_item_name' => esc_html__('Location Name', 'wp-adposts'),
 				'search_items'  => esc_html__('Search location', 'wp-adposts'),
 				'not_found'     => esc_html__('No location found.', 'wp-adposts'),
@@ -328,10 +349,7 @@ class Ianhub_WP_AdPosts
 	public function locations_meta_box($post)
 	{
 		// Retrieve all ads locations.
-		$locations = get_terms(array(
-			'taxonomy'   => 'wpap_location',
-			'hide_empty' => false,
-		));
+		$locations = $this->ads_locations();
 
 		// Display a message if no locations are found.
 		if ( ! $locations)
@@ -399,9 +417,9 @@ class Ianhub_WP_AdPosts
 		array_unshift(
 			$links,
 			// Settings link.
-			'<a href="options-general.php?page=wp-adposts">'.__('Settings').'</a>',
-			// Documentation link.
-			'<a href="http://bit.ly/2FdTlzG" target="_blank">Docs</a>'
+			'<a href="options-general.php?page=wp-adposts">'.esc_html__('Settings', 'wp-adposts').'</a>',
+			// Donation link.
+			'<a href="http://bit.ly/2FrdpOg" target="_blank">'.esc_html__('Donate', 'wp-adposts').'</a>'
 		);
 
 		return $links;
@@ -451,29 +469,65 @@ class Ianhub_WP_AdPosts
 	public function settings_page()
 	{
 		// Get registered sizes from database.
-		$option = get_option('wp_adposts_sizes', null);
-
+		$ads_sizes = $this->ads_sizes();
 		// If none are set, we use default ones.
-		if ( ! $option) {
-			$option = $this->_ads_sizes;
+		if ( ! $ads_sizes) {
+			$ads_sizes = $this->_ads_sizes;
 		}
+
+		// Are ads in posts enabled?
+		$posts_ad_enabled = $this->posts_ad_enabled();
+
+		// At what position ads within posts are displayed?
+		$posts_ad_position = $this->posts_ad_position();
+
+		// Get the register location.
+		$posts_ad_location = $this->posts_ad_location();
+
+		// Get register locations.
+		$locations = $this->ads_locations();
+
 ?>
+<style type="text/css">.wp-adposts-label{display:inline-block;width:25%;float:left;}</style>
 <div class="wrap">
 	<h1><?php esc_html_e('WP AdPosts Settings', 'wp-adposts'); ?></h1>
-	<p><?php esc_html_e('Ad banners are kind of standardized. There are several sizes from which you can choose. If none are selected, default ones will be used (300x250, 468x60 and 728x90). Note that each selected image size will be done to WordPress media manager.', 'wp-adposts'); ?></p>
 	<form action="options.php" method="post"><?php
 
 		settings_fields('wp-adposts-settings');
 		do_settings_sections('wp-adposts-settings');
 
-		foreach ($this->_standard_ads as $name => $sizes)
-		{
 ?>
-		<label for="ad_size_<?php echo $name; ?>"><input type="checkbox" name="wp_adposts_sizes[]" id="ad_size_<?php echo $name; ?>" value="<?php echo $name; ?>"<?php if (is_array($option) && in_array($name, $option)): ?> checked<?php endif; ?>> <?php echo $name; ?></label><br />
-<?php
-		}
-		submit_button();
-	?></form>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th scope="row"><?php esc_html_e('Dimensions', 'wp-adposts'); ?></th>
+					<td>
+					<?php $i = 1; foreach ($this->_standard_ads as $name => $sizes): ?>
+						<label class="wp-adposts-label" for="ad_size_<?php echo $name; ?>"><input type="checkbox" name="wp_adposts_sizes[]" id="ad_size_<?php echo $name; ?>" value="<?php echo $name; ?>"<?php if (is_array($ads_sizes) && in_array($name, $ads_sizes)): ?> checked<?php endif; ?>> <?php echo $name; ?></label><?php if ($i % 4 == 0): ?><br /><?php endif; ?>
+					<?php $i++; endforeach; ?><br />
+					<p class="description"><?php esc_html_e('Ad banners are kind of standardized. There are several sizes from which you can choose. If none are selected, default ones will be used (300x250, 468x60 and 728x90). Note that each selected image size will be done to WordPress media manager.', 'wp-adposts'); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e('Ads Within Content', 'wp-adposts'); ?></th>
+					<td>
+						<label for="wp_adposts_posts_ad_enabled"><input type="checkbox" name="wp_adposts_posts_ad_enabled" id="wp_adposts_posts_ad_enabled" value="1"<?php if ($posts_ad_enabled): ?> checked<?php endif; ?>> <?php esc_html_e('Do you want to display ads within your content paragraphs?', 'wp-adposts'); ?></label><hr />
+						<p><?php esc_html_e('Select the location of which ads are displayed and after which paragraph.', 'wp-adposts'); ?></p><br>
+						<?php if ($locations): ?>
+							<select name="wp_adposts_posts_ad_location" id="wp_adposts_posts_ad_location">
+								<?php foreach ($locations as $term): ?>
+								<option value="<?php echo $term->term_id; ?>"<?php if ($term->term_id == $posts_ad_location): ?> selected<?php endif; ?>><?php echo $term->name; ?></option>
+								<?php endforeach; ?>
+							</select>
+							<input type="number" name="wp_adposts_posts_ad_position" id="wp_adposts_posts_ad_position" value="<?php echo $posts_ad_position; ?>">
+						<?php else: esc_html_e('No location found.', 'wp-adposts'); endif; ?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<?php submit_button(); ?>
+	</form>
 </div><!--/.wrap-->
 <?php
 	}
@@ -494,6 +548,14 @@ class Ianhub_WP_AdPosts
 	public function settings_form()
 	{
 		register_setting('wp-adposts-settings', 'wp_adposts_sizes');
+
+		/**
+		 * Settings below were added to ensure displaying ads within content.
+		 * @since 	1.3.0
+		 */
+		register_setting('wp-adposts-settings', 'wp_adposts_posts_ad_enabled');
+		register_setting('wp-adposts-settings', 'wp_adposts_posts_ad_location');
+		register_setting('wp-adposts-settings', 'wp_adposts_posts_ad_position');
 	}
 
 	// ------------------------------------------------------------------------
@@ -513,6 +575,7 @@ class Ianhub_WP_AdPosts
 	 */
 	public function ads_sizes()
 	{
+		// If sizes were not cached, we make sure to cache them first.
 		if ( ! isset($this->ads_sizes))
 		{
 			$this->ads_sizes = get_option('wp_adposts_sizes');
@@ -523,6 +586,124 @@ class Ianhub_WP_AdPosts
 		}
 
 		return $this->ads_sizes;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Instead of retrieving location by always using "get_term", with results
+	 * in a repeated database call, we try to cache them for later use.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	array
+	 */
+	public function ads_locations()
+	{
+		/**
+		 * We check if ads locations were already cached or not. If
+		 * they weren't, we make sure to cache them first to reduce
+		 * database access.
+		 */
+		if ( ! isset($this->_ads_locations))
+		{
+			$this->_ads_locations = get_terms(array(
+				'taxonomy'   => 'wpap_location',
+				'hide_empty' => false,
+			));
+		}
+
+		return $this->_ads_locations;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method returns TRUE if ads within posts are enabled.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	boolean
+	 */
+	public function posts_ad_enabled()
+	{
+		// Get the option from database then cache the result.
+		$option = get_option('wp_adposts_posts_ad_enabled');
+		if ($option)
+		{
+			$this->_posts_ad_enabled = (bool) $option;
+		}
+
+		return $this->_posts_ad_enabled;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method returns the selected details about the location stored in
+	 * database from which ads within posts will be displayed.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	string 	$return 	The object key to return.
+	 * @return 	mixed
+	 */
+	public function posts_ad_location($return = 'term_id')
+	{
+		// Get the option from database and make sure it exists.
+		$option = get_option('wp_adposts_posts_ad_location');
+		if ( ! $option)
+		{
+			return null;
+		}
+
+		// Now we get the stored location and make sure it exists.
+		$location = get_term_by('id', $option, 'wpap_location');
+		if ( ! $location)
+		{
+			return null;
+		}
+
+		// Return the selected key if it exists, otherwise simply return the id.
+		return (isset($location->{$return}))
+			? $location->{$return}
+			: $location->term_id;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * Returns the position of ads displayed within paragraphs. This method
+	 * is used to reduce DB access.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	integer
+	 */
+	public function posts_ad_position()
+	{
+		// If it was not already cached, cache it first then return it.
+		if ( ! isset($this->_posts_ad_position))
+		{
+			$this->_posts_ad_position = get_option('wp_adposts_posts_ad_position', 0);
+		}
+
+		return $this->_posts_ad_position;
 	}
 
 	// ------------------------------------------------------------------------
@@ -877,6 +1058,7 @@ class Ianhub_WP_AdPosts
 	 */
 	public function locations_add_form($term_id)
 	{
+		// We save the first only if it's set.
 		if (isset($_POST['ads_sizes']))
 		{
 			$ads_sizes = sanitize_text_field($_POST['ads_sizes']);
@@ -900,6 +1082,7 @@ class Ianhub_WP_AdPosts
 	 */
 	public function locations_edit_form($term_id)
 	{
+		// We save the first only if it's set.
 		if (isset($_POST['ads_sizes']))
 		{
 			$ads_sizes = sanitize_text_field($_POST['ads_sizes']);
@@ -926,8 +1109,8 @@ class Ianhub_WP_AdPosts
 		unset($columns['posts']);
 
 		// Add ads sizes column.
-		$columns['ads_count'] = __('Ads', 'wp-adposts');
-		$columns['ads_sizes'] = __('Dimensions', 'wp-adposts');
+		$columns['ads_count'] = esc_html__('Ads', 'wp-adposts');
+		$columns['ads_sizes'] = esc_html__('Dimensions', 'wp-adposts');
 		return $columns;
 	}
 
@@ -1031,8 +1214,6 @@ class Ianhub_WP_AdPosts
 	}
 
 	// ------------------------------------------------------------------------
-	// Shortcode and ad display.
-	// ------------------------------------------------------------------------
 
 	/**
 	 * The shortcode used to display ads within posts and pages.
@@ -1047,12 +1228,26 @@ class Ianhub_WP_AdPosts
 	 */
 	public function shortcode($attrs)
 	{
-		if (empty($attrs) OR ! isset($attrs['location']))
+		// Nothing passed, nothing to do.
+		if (empty($attrs))
 		{
 			return null;
 		}
 
-		return $this->ad_display($attrs['location']);
+		// Getting an ad by its id is the priority.
+		if (isset($attrs['ad']))
+		{
+			return $this->ad_display($attrs['ad']);
+		}
+
+		// By location?
+		if (isset($attrs['location']))
+		{
+			return $this->ad_display($attrs['location']);
+		}
+
+		// Nothing? Then nothing!
+		return nul;
 	}
 
 	// ------------------------------------------------------------------------
@@ -1065,19 +1260,48 @@ class Ianhub_WP_AdPosts
 	 * @since 	1.0.0
 	 *
 	 * @access 	public
-	 * @param 	string 	$ad_location 	The location where the ad is displayed.
+	 * @param 	mixed 	$param 	The location slug or the ad ID.
 	 * @return 	string
 	 */
-	public function ad_display($ad_location = null)
+	public function ad_display($param = null)
 	{
-		// If no ad_location is provided, nothing to do.
-		if ( ! $ad_location)
+		// If no param is provided, nothing to do.
+		if ( ! $param)
 		{
 			return null;
 		}
 
-		// Get the location by it's slug and make sure it exists.
-		$location = get_term_by('slug', $ad_location, 'wpap_location');
+		// Get an ad by its ID?
+		if (is_numeric($param))
+		{
+			// Make sure it's an absolute integer.
+			$param = absint($param);
+
+			// Get the ad and make sure it exists.
+			$ad = get_post($param);
+			if ( ! $ad)
+			{
+				return null;
+			}
+
+			// Get the location of the ad.
+			$ad_location = get_post_meta($param, 'ad_location', true);
+			if ( ! $ad_location)
+			{
+				return null;
+			}
+
+			// Get the location.
+			$location = get_term_by('term_id', $ad_location, 'wpap_location');
+		}
+		// Getting by location?
+		else
+		{
+			// Get the location by it's slug and make sure it exists.
+			$location = get_term_by('slug', $param, 'wpap_location');
+		}
+
+		// Not location? Nothing to do.
 		if ( ! $location)
 		{
 			return null;
@@ -1104,23 +1328,33 @@ class Ianhub_WP_AdPosts
 			$height = 'auto';
 		}
 
-		// Let's now retrieve ads.
-		$ads = get_posts(array(
-			'posts_per_page' => 1,
-			'orderby'        => 'rand',
-			'post_type'      => 'wpap_ad',
-			'meta_key'       => 'ad_location',
-			'meta_value'     => $location->term_id,
-		));
-
-		// If there are no ads, nothing to do.
-		if ( ! $ads)
+		/**
+		 * We check if the ad was already set or not. It is set if
+		 * we choose to display an ad by its ID. If we choose random
+		 * ads from a selected location, the "$ad" is not set.
+		 * @see 	line 1281.
+		 */
+		if ( ! isset($ad))
 		{
-			return null;
+			// Get a random ad.
+			$ads = get_posts(array(
+				'posts_per_page' => 1,
+				'orderby'        => 'rand',
+				'post_type'      => 'wpap_ad',
+				'meta_key'       => 'ad_location',
+				'meta_value'     => $location->term_id,
+			));
+
+			// If there are no ads, nothing to do.
+			if ( ! $ads)
+			{
+				return null;
+			}
+
+			// Let's prepare the ad post.
+			$ad = $ads[0];
 		}
 
-		// Let's prepare the ad post.
-		$ad = $ads[0];
 		setup_postdata($ad);
 
 		// Get the ad URL.
@@ -1144,7 +1378,7 @@ class Ianhub_WP_AdPosts
 			}
 
 			$content = sprintf(
-				'<a class="wp-adpost-link" data-ad="%" href="%" target="_blank">%s</a>',
+				'<a class="wp-adpost-link" data-ad="%s" href="%s" target="_blank">%s</a>',
 				esc_attr($ad->ID),
 				esc_url_raw($url),
 				get_the_post_thumbnail($ad->ID, $size)
@@ -1200,6 +1434,111 @@ class Ianhub_WP_AdPosts
 
 		wp_reset_postdata();
 		return $output;
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method simply checks if ads within posts are enabled and adds
+	 * the filter to the content if there are any.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	none
+	 * @return 	void
+	 */
+	public function ads_within_posts()
+	{
+		if ($this->posts_ad_enabled() === true)
+		{
+			add_filter('the_content', array($this, 'insert_posts_ad'));
+		}
+	}
+
+	// ------------------------------------------------------------------------
+
+	/**
+	 * This method inserts ads from the selected location into the
+	 * selected position in posts.
+	 *
+	 * @author 	Kader Bouyakoub
+	 * @link 	http://bit.ly/KaderGhb
+	 * @since 	1.3.0
+	 *
+	 * @access 	public
+	 * @param 	array 	$attrs 	Shortcode attributes.
+	 * @return 	string
+	 */
+	public function insert_posts_ad($content)
+	{
+		/**
+		 * As you may notice below, we are making sure that we are on
+		 * the post content (single) not elsewhere.
+		 */
+		if ( ! is_single())
+		{
+			return $content;
+		}
+
+		/**
+		 * We start by getting the stored location in options table.
+		 * If nothing found OR the location does not exists, well,
+		 * there is nothing to do, we return the content as it is.
+		 */
+		$slug = $this->posts_ad_location('slug');
+		if ( ! $slug OR ! get_term_by('slug', $slug, 'wpap_location'))
+		{
+			return $content;
+		}
+
+		/**
+		 * Now we get a random ad from the selected location. If none
+		 * is found, we simple, as well, return the content as it is.
+		 */
+		$ad = $this->ad_display($slug);
+		if ( ! $ad)
+		{
+			return $content;
+		}
+
+		// Now we get the position from database and use it to display the ad.
+		$position = absint($this->posts_ad_position());
+
+		// Now we split the content into paragraphs and hold their count.
+		$paragraphs = explode('</p>', $content);
+		$p_count    = count($paragraphs);
+
+		// Now we loop through paragraphs and display the ad at the selected position.
+		foreach ($paragraphs as $i => $p)
+		{
+			// If the paragraph has a content, we add the closing tag.
+			if (trim($p))
+			{
+				$paragraphs[$i] .= '</p>';
+			}
+
+			/**
+			 * Here is the tricky part of the code:
+			 * If the selected position is superior to paragraphs count,
+			 * we simply display the ad at the end of the content.
+			 * Otherwise, we display it right where is should be.
+			 */
+			if (($position >= $p_count && $i == $p_count - 1)
+				OR $position == $i + 1)
+			{
+				$paragraphs[$i] .= $ad;
+			}
+		}
+
+		/**
+		 * Now that everything is set up, we put back all paragraphs
+		 * together and simply return the final output.
+		 */
+		$content = implode('', $paragraphs);
+		return $content;
 	}
 
 }

@@ -24,108 +24,150 @@ msgstr ""
 
 # This is the plugin's description.
 msgid ""
-"Allows you to create ads using codes or images and provides views and clicks counters, "
-"as well as locations management. You can even use the provided shortcode to insert ads "
-"into posts and pages."
+"Allows you to create ads using codes or images and provides views and clicks "
+"counters, as well as locations management. You can even use the provided "
+"shortcode to insert ads into posts and pages."
 msgstr ""
 
-#: wp-adpost.php:200
-#: wp-adpost.php:923
+#: wp-adpost.php:220
+#: wp-adpost.php:1112
 msgid "Ads"
 msgstr ""
 
-#: wp-adpost.php:201
+#: wp-adpost.php:221
 msgid "Ad"
 msgstr ""
 
-#: wp-adpost.php:209
+#: wp-adpost.php:224
+#: wp-adpost.php:225
+#: wp-adpost.php:226
+#: wp-adpost.php:256
+msgid "Add"
+msgstr ""
+
+#: wp-adpost.php:227
+msgid "Edit"
+msgstr ""
+
+#: wp-adpost.php:228
+msgid "View"
+msgstr ""
+
+#: wp-adpost.php:229
 msgid "All Ads"
 msgstr ""
 
-#: wp-adpost.php:210
+#: wp-adpost.php:230
 msgid "Search Ads"
 msgstr ""
 
-#: wp-adpost.php:211
+#: wp-adpost.php:231
 msgid "No ads were found."
 msgstr ""
 
-#: wp-adpost.php:212
+#: wp-adpost.php:232
 msgid "No ads were found in trash."
 msgstr ""
 
-#: wp-adpost.php:230
-#: wp-adpost.php:232
+#: wp-adpost.php:250
+#: wp-adpost.php:252
 msgid "Locations"
 msgstr ""
 
-#: wp-adpost.php:231
-#: wp-adpost.php:301
-#: wp-adpost.php:610
+#: wp-adpost.php:251
+#: wp-adpost.php:328
+#: wp-adpost.php:797
 msgid "Location"
 msgstr ""
 
-#: wp-adpost.php:233
+#: wp-adpost.php:253
 msgid "All ad locations"
 msgstr ""
 
-#: wp-adpost.php:234
+#: wp-adpost.php:254
 msgid "Edit ad location"
 msgstr ""
 
-#: wp-adpost.php:237
+#: wp-adpost.php:255
+msgid "Update"
+msgstr ""
+
+#: wp-adpost.php:257
 msgid "Location Name"
 msgstr ""
 
-#: wp-adpost.php:238
+#: wp-adpost.php:258
 msgid "Search location"
 msgstr ""
 
-#: wp-adpost.php:239
-#: wp-adpost.php:333
+#: wp-adpost.php:259
+#: wp-adpost.php:357
+#: wp-adpost.php:523
 msgid "No location found."
 msgstr ""
 
-#: wp-adpost.php:428
-#: wp-adpost.php:463
+#: wp-adpost.php:420
+msgid "Settings"
+msgstr ""
+
+#: wp-adpost.php:422
+msgid "Donate"
+msgstr ""
+
+#: wp-adpost.php:445
+#: wp-adpost.php:493
 msgid "WP AdPosts Settings"
 msgstr ""
 
-#: wp-adpost.php:464
+#: wp-adpost.php:508
 msgid ""
-"Ad banners are kind of standardized. There are several sizes from which you can choose. "
-"If none are selected, default ones will be used (300x250, 468x60 and 728x90). "
-"Note that each selected image size will be done to WordPress media manager."
+"Ad banners are kind of standardized. There are several sizes from which you "
+"can choose. If none are selected, default ones will be used (300x250, 468x60 "
+"and 728x90). Note that each selected image size will be done to WordPress "
+"media manager."
 msgstr ""
 
-#: wp-adpost.php:618
+#: wp-adpost.php:512
+msgid "Ads Within Content"
+msgstr ""
+
+#: wp-adpost.php:514
+msgid "Do you want to display ads within your content paragraphs?"
+msgstr ""
+
+#: wp-adpost.php:515
+msgid "Select the location of which ads are displayed and after which paragraph."
+msgstr ""
+
+#: wp-adpost.php:798
 msgid "Views"
 msgstr ""
 
-#: wp-adpost.php:619
+#: wp-adpost.php:799
 msgid "Clicks"
 msgstr ""
 
-#: wp-adpost.php:647
-#: wp-adpost.php:652
-#: wp-adpost.php:831
-#: wp-adpost.php:857
-#: wp-adpost.php:972
+#: wp-adpost.php:827
+#: wp-adpost.php:832
+#: wp-adpost.php:1011
+#: wp-adpost.php:1037
+#: wp-adpost.php:1154
 msgid "Undefined"
 msgstr ""
 
-#: wp-adpost.php:717
+#: wp-adpost.php:897
 msgid "Ad Link"
 msgstr ""
 
-#: wp-adpost.php:829
-#: wp-adpost.php:854
-#: wp-adpost.php:931
+#: wp-adpost.php:503
+#: wp-adpost.php:1009
+#: wp-adpost.php:1034
+#: wp-adpost.php:1113
 msgid "Dimensions"
 msgstr ""
 
-#: wp-adpost.php:834
-#: wp-adpost.php:860
+#: wp-adpost.php:1014
+#: wp-adpost.php:1040
 msgid ""
 "Dimensions on this dropdown list are the ones you have selected on the "
 "settings page. <a href=\"%s\">Click here</a> if you want to add more."

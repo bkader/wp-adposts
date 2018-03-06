@@ -4,7 +4,7 @@ Donate link: http://bit.ly/2FrdpOg
 Tags: WP-AdPosts, WordPress.com, ads, banner, plugin, widget, management, stats
 Requires at least: 4.6
 Tested up to: 4.9.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 Requires PHP: 5.2.4
 License: GPLv3 or later
 License URI: https://opensource.org/licenses/GPL-3.0
@@ -28,8 +28,20 @@ In order to display an ad on your front-end, you can use the provided php functi
 Location here stands for the created location's **slug**. So if you created a **Header** location, it may have the **header** slug, so you do:
 `<?php echo wp_adposts( 'header' ); ?>`
 
-WP AdPosts enabled shortcodes on text widgets, so you can as well use a widget in which you can use it like so:
+WP AdPosts enabled shortcodes on text widgets, so you can as well use a text widget in which you can use this provided shortcode like so:
 `[wp-adposts location="header"]`
+
+Using the location, as an argument for the function or an attribute for the shortcode, will display a single randomly picked ad to which it was assigned.
+
+As of version **1.3.0**, it is possible to display a specific ad by its ID, passed to the php function in your theme's files like so:
+`<?php echo wp_adposts( 123 ); ?>`
+Or used as shortcode attributes like the example below:
+`[wp-adposts ad="123"]`
+
+**THINGS YOU SHOULD KNOW**:
+
+* To display an ad by its ID, make sure to assign a location to it in order to display it with the selected dimensions. Ads with no locations assigned will not be displayed.
+* Priority is to ad ID. So if you use both attributes in the shortcode, the **ad** will be used. If the ad is not found, even if the location exists and has ads assign to it, nothing will be displayed.
 
 = Manage Locations =
 They are much more like "sizes" limitations. A location can have a specified ads sizes so that ads will be contained in them. For instance, if a location has 728 pixles by 90 pixels (728x90), anything that is beyond that is simply hidden.
@@ -56,6 +68,11 @@ You will see on ads management page views and clicks counters. These are useful 
 
 == Changelog ==
 
+= 1.3.0 =
+* It is now possible to display ads within posts content.
+* The php function or shortcode accept now the ad ID in order to display a specific ad.
+* Settings page enhanced.
+
 = 1.2.0 =
 * The default location meta box was replaced with a custom one.
 
@@ -66,6 +83,9 @@ You will see on ads management page views and clicks counters. These are useful 
 * First plugin commit.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+With this upgrade, it is now possible to automatically display ads within posts by simply enabling it on the settings pages, choosing the location from which ads will be randomly picked, then choose after what paragraph the ad should be displayed. Setting this to a huge number (i.e: 99) will display the ad at the end of the post.
 
 = 1.2.0 =
 The default location meta box was replaced with a custom one.
